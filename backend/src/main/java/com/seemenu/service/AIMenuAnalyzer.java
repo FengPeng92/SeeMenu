@@ -20,16 +20,11 @@ public class AIMenuAnalyzer {
     private final WebClient openAiWebClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Value("${openai.api.key}")
-    private String apiKey;
-
     @Value("${openai.model}")
     private String model;
 
     public List<DishInfo> analyzeMenuFromBase64(String base64Image) {
         log.info("Analyzing menu with AI model: {}", model);
-        log.info("API Key starts with: {}", apiKey != null ? apiKey.substring(0, Math.min(10, apiKey.length())) + "..." : "NULL");
-        log.info("API Key length: {}", apiKey != null ? apiKey.length() : 0);
 
         String prompt = buildAnalysisPrompt();
 
