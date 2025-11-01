@@ -18,5 +18,4 @@ public class DishInfo {
     private List<String> ingredients;
     private List<String> allergens;
     private List<String> dietaryInfo; // e.g., "vegetarian", "vegan", "gluten-free"
-    private String nutritionalInfo;
 }
