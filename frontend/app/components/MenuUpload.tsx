@@ -42,16 +42,19 @@ export default function MenuUpload() {
     if (!selectedFile) return;
 
     setLoading(true);
-    const formData = new FormData();
-    formData.append('file', selectedFile);
 
     try {
+      // Send raw bytes instead of FormData to avoid multipart complexity
+      const arrayBuffer = await selectedFile.arrayBuffer();
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://pea41p50hh.execute-api.us-east-1.amazonaws.com/prod';
+
       const response = await axios.post<MenuAnalysisResponse>(
-        'http://localhost:8080/api/menu/upload',
-        formData,
+        `${API_URL}/api/menu/upload`,
+        arrayBuffer,
         {
           headers: {
-            'Content-Type': 'multipart/form-data',
+            'Content-Type': selectedFile.type || 'application/octet-stream',
+            'X-Filename': selectedFile.name,
           },
         }
       );

@@ -9,6 +9,9 @@ export default function Home() {
           <p className="text-xl text-gray-600">
             Scan your restaurant menu and discover detailed dish information
           </p>
+          <p className="text-sm text-gray-500 mt-2">
+            Deployed via AWS CDK - Serverless Lambda Architecture
+          </p>
         </div>
         <MenuUpload />
       </div>
