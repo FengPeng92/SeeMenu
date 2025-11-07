@@ -35,6 +35,11 @@ public class AIMenuAnalyzer {
             requestBody.put("max_tokens", 2000);
             requestBody.put("temperature", 0.3);
 
+            // Force JSON mode for structured output (ensures valid JSON)
+            Map<String, String> responseFormat = new HashMap<>();
+            responseFormat.put("type", "json_object");
+            requestBody.put("response_format", responseFormat);
+
             // Build messages array
             List<Map<String, Object>> messages = new ArrayList<>();
 
@@ -120,19 +125,21 @@ public class AIMenuAnalyzer {
                 5. Common allergens (dairy, gluten, nuts, shellfish, etc.)
                 6. Dietary information (vegetarian, vegan, gluten-free, etc.)
 
-                Return the response as a JSON array with this exact structure:
-                [
-                  {
-                    "name": "Dish Name",
-                    "description": "Brief description",
-                    "price": "$XX.XX",
-                    "ingredients": ["ingredient1", "ingredient2"],
-                    "allergens": ["allergen1", "allergen2"],
-                    "dietaryInfo": ["vegetarian", "gluten-free"]
-                  }
-                ]
+                Return your response as a JSON object with a "dishes" array containing this structure:
+                {
+                  "dishes": [
+                    {
+                      "name": "Dish Name",
+                      "description": "Brief description",
+                      "price": "$XX.XX",
+                      "ingredients": ["ingredient1", "ingredient2"],
+                      "allergens": ["allergen1", "allergen2"],
+                      "dietaryInfo": ["vegetarian", "gluten-free"]
+                    }
+                  ]
+                }
 
-                IMPORTANT: Return ONLY the JSON array, no additional text or explanation.
+                IMPORTANT: Return valid JSON only, no markdown code blocks or additional text.
                 """;
     }
 
@@ -147,15 +154,22 @@ public class AIMenuAnalyzer {
 
             JsonNode rootNode = objectMapper.readTree(jsonString);
 
+            // Handle both old format (array) and new format (object with "dishes" array)
+            JsonNode dishesNode;
             if (rootNode.isArray()) {
-                log.info("Found {} dishes in response", rootNode.size());
-                for (JsonNode dishNode : rootNode) {
-                    DishInfo dish = parseDishNode(dishNode);
-                    dishes.add(dish);
-                    log.debug("Parsed dish: {}", dish.getName());
-                }
+                dishesNode = rootNode;
+            } else if (rootNode.has("dishes") && rootNode.get("dishes").isArray()) {
+                dishesNode = rootNode.get("dishes");
             } else {
-                log.warn("Response is not a JSON array: {}", rootNode);
+                log.warn("Response is neither an array nor an object with 'dishes' array: {}", rootNode);
+                return dishes;
+            }
+
+            log.info("Found {} dishes in response", dishesNode.size());
+            for (JsonNode dishNode : dishesNode) {
+                DishInfo dish = parseDishNode(dishNode);
+                dishes.add(dish);
+                log.debug("Parsed dish: {}", dish.getName());
             }
 
         } catch (JsonProcessingException e) {
